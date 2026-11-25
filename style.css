@@ -118,6 +118,12 @@ tr.fin td{background:color-mix(in srgb,var(--red) 8%,var(--card))}tr.fin td.r{co
 td.trend{white-space:nowrap;color:var(--muted);font-size:11px}
 td.trend svg{vertical-align:middle;margin-right:4px}
 .box p.note{font-size:11px;color:var(--muted);font-style:italic;margin:8px 0 0;line-height:1.4}
+.rw-wrap{padding:4px 14px 12px}
+.rw{padding:12px 0;border-bottom:1px solid var(--line)}
+.rw h3{font-size:15px;margin:0 0 6px}
+.rw p{font-size:14px;line-height:1.5;margin:0 0 6px}
+.rw p.rw-meta{font-size:13px;color:var(--muted)}
+.rw p.rw-meta b{color:inherit}
 
 /* article */
 .article{background:var(--card);border-radius:6px;padding:28px 32px}
