@@ -104,6 +104,20 @@ tr.fin td{background:color-mix(in srgb,var(--red) 8%,var(--card))}tr.fin td.r{co
 .list li.sub{padding:8px 14px 4px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-text);border-bottom:0}
 .list li.note{font-size:11px;color:var(--muted);font-style:italic;border-bottom:0}
 .scroll{overflow-x:auto}
+.lead-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;padding:0 16px 8px}
+.lead-grid .box{margin-bottom:0}
+.pv-tape td{width:42%;text-align:center}
+.pv-tape th{width:16%;text-align:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.pv-two{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+.pv-two .box{margin-bottom:0}
+.pv-lead th{width:90px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;vertical-align:top}
+.pv-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;padding:20px 16px;align-items:start}
+.pv-index .box{margin-bottom:0}
+.lead-sec{font-size:14px;letter-spacing:.12em;color:var(--muted);padding:18px 16px 8px;margin:0}
+.lead-note{font-size:12px;color:var(--muted);font-style:italic;padding:12px 16px 24px;margin:0}
+td.trend{white-space:nowrap;color:var(--muted);font-size:11px}
+td.trend svg{vertical-align:middle;margin-right:4px}
+.box p.note{font-size:11px;color:var(--muted);font-style:italic;margin:8px 0 0;line-height:1.4}
 
 /* article */
 .article{background:var(--card);border-radius:6px;padding:28px 32px}
@@ -167,6 +181,29 @@ tr.fin td{background:color-mix(in srgb,var(--red) 8%,var(--card))}tr.fin td.r{co
   .ed-article p{font-size:17px}
   .ed-article blockquote{font-size:22px}
 }
+
+/* team pages (team_pages.py) and team links (link_teams.py) */
+a.tl{text-decoration:underline;text-decoration-color:color-mix(in srgb,currentColor 30%,transparent);text-underline-offset:2px}
+a.tl:hover{color:var(--accent-text);text-decoration-color:currentColor}
+.tm-title{border-left:6px solid var(--team,var(--ink));padding-left:14px}
+.tm-title h1 span{font-weight:400;color:var(--muted)}
+.tm-title a.kick:hover{text-decoration:none;filter:brightness(1.1)}
+.box h2 .tm-key{font-weight:400;color:var(--on-ink-soft);font-size:11px;letter-spacing:0}
+.tm-sched tr.cg td{background:color-mix(in srgb,var(--ink) 6%,var(--card))}
+.tm-sched td a,.lead-grid .list a,.tm-index a{color:inherit}
+.tm-pos{color:var(--soft);font-size:11px;font-weight:700}
+.tm-next{padding:10px 14px;font-size:13px;color:var(--muted)}
+.tm-next b{color:var(--text)}
+.tm-trend{padding:12px 14px;color:var(--accent-text)}
+.tm-spark{width:100%;height:64px;display:block}
+.tm-spark .cut{stroke:var(--line);stroke-dasharray:3 3}
+.tm-trend p{color:var(--muted);font-size:12px;margin-top:6px}
+.tm-note{padding:0 14px 12px}
+.tm-roster summary{background:var(--ink);color:#fff;font-size:13px;font-weight:700;letter-spacing:.08em;padding:10px 14px;cursor:pointer}
+.tm-index{padding-top:20px}
+.tm-nums{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.tm-nums div{border-right:1px solid var(--line)!important}
+.tm-rec .note{padding-top:10px}
 
 footer{background:var(--ink);color:var(--on-ink-soft);font-size:12px;padding:22px 0;margin-top:10px}
 footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
