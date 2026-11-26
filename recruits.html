@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recruit Directory · Saturday Desk</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .rd-f{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+  .rd-f input,.rd-f select{font:inherit;padding:6px 8px;border:1px solid rgba(127,127,127,.45);border-radius:4px;background:transparent;color:inherit}
+  .rd-f input{flex:1 1 200px}
+  .rd-f select option{color:#111}
+  .rd-pg{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .rd-pg button{font:inherit;padding:4px 10px;border:1px solid rgba(127,127,127,.45);border-radius:4px;background:transparent;color:inherit;cursor:pointer}
+  .rd-pg button[disabled]{opacity:.4;cursor:default}
+  td.n,th.n{text-align:right}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="index.html">SATURDAY<span>DESK</span></a>
+  <nav class="main">
+    <a href="index.html">Home</a><a href="top25.html">Top 25</a><a href="conference.html">Conferences</a><a href="teams.html">Teams</a><a href="heisman.html">Heisman</a><a href="leaders.html">Stat Leaders</a><a href="injuries.html">Injuries</a>
+    <a href="tops.html">Weekly Tops</a><a href="frosh.html">Frosh Heisman</a><a href="trail.html">The Trail</a><a href="article.html">Dual Threat</a><a href="ak.html">AK Corner</a><a href="film-room.html">Film Room</a><a href="weeks.html">Archive</a>
+  </nav>
+</div></header>
+<div class="edition"><div class="wrap"><b id="rd-ed">RECRUIT DIRECTORY</b><a href="trail.html">The Trail →</a></div></div>
+<div class="wrap page-title"><span class="kick">THE TRAIL · EVERY PROSPECT</span><h1>Recruit Directory</h1><p id="rd-dek">Every prospect in the class, with where he stands this week.</p></div>
+<div class="wrap">
+  <div class="box">
+    <div class="rd-f">
+      <input id="q" type="search" placeholder="Search by name or hometown" aria-label="Search by name or hometown">
+      <select id="pos" aria-label="Position"><option value="">All positions</option></select>
+      <select id="st" aria-label="Stars"><option value="">All stars</option><option value="5">★★★★★</option><option value="4">★★★★</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option></select>
+      <select id="state" aria-label="Home state"><option value="">All states</option></select>
+      <select id="stat" aria-label="Status"><option value="">Any status</option><option value="c">Committed</option><option value="l">Has a leader</option><option value="t">Co-leaders</option><option value="n">Nobody calling</option></select>
+      <select id="team" aria-label="School"><option value="">Any school</option></select>
+    </div>
+    <div class="scroll"><table id="rd-t"></table></div>
+    <div class="rd-pg"><button id="prev" type="button">← Previous</button><span id="pg"></span><button id="next" type="button">Next →</button></div>
+  </div>
+</div>
+<script>
+(function () {
+  var $ = function (i) { return document.getElementById(i); }, D, page = 0, PER = 100;
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+  window.RD_LOAD = function (d) { D = d; setup(); draw(); };
+  var tag = document.createElement("script");
+  tag.src = "recruits/2026/index.js";
+  tag.onerror = function () { $("rd-t").innerHTML = "<tr><td>No recruiting data yet.</td></tr>"; };
+  document.body.appendChild(tag);
+  var KEY = "rd-filters";
+  function setup() {
+    $("rd-ed").textContent = "CLASS OF " + (D.season + 1) + " · THROUGH WEEK " + D.week;
+    $("rd-dek").textContent = D.rows.length.toLocaleString("en-US") + " prospects in the class of " + (D.season + 1) + ", with where each one stands after Week " + D.week + ".";
+    function opts(id, vals, label) { $(id).innerHTML += vals.map(function (v) { return "<option value=\"" + esc(v[0]) + "\">" + esc(v[1]) + "</option>"; }).join(""); }
+    var pos = {}, st = {}, tm = {};
+    D.rows.forEach(function (r) { pos[r[2]] = 1; if (r[6]) st[r[6]] = 1; if (r[9]) tm[r[9]] = 1; });
+    opts("pos", Object.keys(pos).sort().map(function (p) { return [p, p]; }));
+    opts("state", Object.keys(st).sort().map(function (s) { return [s, s]; }));
+    opts("team", Object.keys(tm).map(function (t) { return [t, D.teams[t]]; }).sort(function (a, b) { return a[1].localeCompare(b[1]); }));
+    try { var saved = JSON.parse(sessionStorage.getItem(KEY) || "{}"); ["q", "pos", "st", "state", "stat", "team"].forEach(function (k) { if (saved[k] != null) $(k).value = saved[k]; }); } catch (e) {}
+    ["q", "pos", "st", "state", "stat", "team"].forEach(function (k) { $(k).addEventListener("input", function () { page = 0; draw(); }); });
+    $("prev").onclick = function () { page--; draw(); };
+    $("next").onclick = function () { page++; draw(); };
+  }
+  function draw() {
+    var f = {q: $("q").value.trim().toLowerCase(), pos: $("pos").value, st: $("st").value, state: $("state").value, stat: $("stat").value, team: $("team").value};
+    try { sessionStorage.setItem(KEY, JSON.stringify(f)); } catch (e) {}
+    var rows = D.rows.filter(function (r) {
+      return (!f.q || (r[1] + " " + r[7] + " " + r[6]).toLowerCase().indexOf(f.q) >= 0) && (!f.pos || r[2] === f.pos) && (!f.st || r[3] === +f.st)
+        && (!f.state || r[6] === f.state) && (!f.stat || r[8] === f.stat) && (!f.team || String(r[9]) === f.team);
+    });
+    var pages = Math.max(1, Math.ceil(rows.length / PER)); page = Math.min(Math.max(0, page), pages - 1);
+    var stxt = {c: "Committed to ", l: "Leader: ", t: "Co-leader: "};
+    var body = rows.slice(page * PER, page * PER + PER).map(function (r) {
+      var where = r[8] === "n" ? "<i>Nobody calling</i>" : stxt[r[8]] + esc(D.teams[r[9]] || "?") + (r[8] === "c" ? "" : " (" + r[10] + ")");
+      return "<tr><td class=\"r\">" + (r[4] < 9999 ? r[4] : "–") + "</td><td><a class=\"pl\" href=\"recruit.html?s=" + D.season + "&id=" + r[0] + "\"><b>" + esc(r[1]) + "</b></a> " + esc(r[2])
+        + "</td><td>" + "★".repeat(r[3] || 0) + "</td><td>" + esc([r[7], r[6]].filter(Boolean).join(", ")) + "</td><td>" + (r[8] === "c" ? "<b>" + where + "</b>" : where)
+        + "</td><td class=\"n\">" + r[11] + "</td></tr>";
+    }).join("");
+    $("rd-t").innerHTML = "<tr><th>#</th><th>Prospect</th><th>Stars</th><th>Hometown</th><th>Where he stands</th><th class=\"n\">Schools</th></tr>"
+      + (body || "<tr><td colspan=\"6\">No prospect matches these filters.</td></tr>");
+    $("pg").textContent = rows.length.toLocaleString("en-US") + " prospects · page " + (page + 1) + " of " + pages;
+    $("prev").disabled = page === 0; $("next").disabled = page >= pages - 1;
+  }
+})();
+</script>
+<footer><div class="wrap"><span>Fan site · Stats from a Draft Day Sports: College Football league</span><span class="sp">Archive: 2026</span><span class="credit">Flag photo: <a href="https://commons.wikimedia.org/wiki/File:American_Flag_Waving_in_the_Wind.jpg">IceuImgflip</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span></div></footer>
+<script src="theme.js"></script>
+</body>
+</html>
