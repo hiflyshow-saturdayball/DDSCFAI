@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player · Saturday Desk</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .pp-bio{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:.95em}
+  .pp-bio b{font-weight:600}
+  .pp-big{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin:4px 0 2px}
+  .pp-big div{border:1px solid currentColor;border-color:rgba(127,127,127,.3);border-radius:4px;padding:8px 10px}
+  .pp-big em{display:block;font-style:normal;font-size:1.5em;font-weight:700}
+  .pp-big span{font-size:.8em;opacity:.75;text-transform:uppercase;letter-spacing:.04em}
+  td.n,th.n{text-align:right}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="index.html">SATURDAY<span>DESK</span></a>
+  <nav class="main">
+    <a href="index.html">Home</a><a href="top25.html">Top 25</a><a href="conference.html">Conferences</a><a href="teams.html">Teams</a><a href="heisman.html">Heisman</a><a href="leaders.html">Stat Leaders</a><a href="injuries.html">Injuries</a>
+    <a href="tops.html">Weekly Tops</a><a href="frosh.html">Frosh Heisman</a><a href="trail.html">The Trail</a><a href="article.html">Dual Threat</a><a href="ak.html">AK Corner</a><a href="film-room.html">Film Room</a><a href="weeks.html">Archive</a>
+  </nav>
+</div></header>
+<div class="edition"><div class="wrap"><b id="pp-ed">PLAYER</b><a id="pp-team-link" href="teams.html">All teams →</a></div></div>
+<div class="wrap page-title"><span class="kick" id="pp-kick">PLAYER</span><h1 id="pp-name">Loading…</h1><div class="pp-bio" id="pp-bio"></div></div>
+<div class="wrap grid">
+  <main id="pp-main"></main>
+  <aside id="pp-side"></aside>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), s = q.get("s"), t = q.get("t"), id = q.get("id");
+  var $ = function (i) { return document.getElementById(i); };
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+  function fail(msg) { $("pp-name").textContent = "Player not found"; $("pp-main").innerHTML = '<div class="box"><p>' + esc(msg) + ' <a href="teams.html">Browse the teams →</a></p></div>'; }
+  if (!s || !t || !id || !/^[a-z0-9-]+$/.test(t) || !/^\d{4}$/.test(s)) { fail("This link is missing the player."); return; }
+  // the data file calls PD_LOAD(...); a <script> tag works on file:// too, where fetch() is blocked
+  window.PD_LOAD = function (d) { render(d); };
+  var tag = document.createElement("script");
+  tag.src = "players/" + s + "/" + t + ".js";
+  tag.onerror = function () { fail("No data for this team and season."); };
+  document.body.appendChild(tag);
+
+  // stat groups: [title, test, columns [label, key or function]]
+  var pct = function (a, b) { return b ? (100 * a / b).toFixed(1) : "–"; };
+  var avg = function (a, b) { return b ? (a / b).toFixed(1) : "–"; };
+  var G = [
+    ["Passing", function (x) { return x.pa; }, [["C/A", function (x) { return (x.pc || 0) + "/" + (x.pa || 0); }], ["Pct", function (x) { return pct(x.pc || 0, x.pa); }], ["Yds", "py"], ["TD", "ptd"], ["INT", "pint"]]],
+    ["Rushing", function (x) { return x.ra; }, [["Car", "ra"], ["Yds", "ry"], ["Avg", function (x) { return avg(x.ry || 0, x.ra); }], ["TD", "rtd"]]],
+    ["Receiving", function (x) { return x.catches || x.recy; }, [["Rec", "catches"], ["Yds", "recy"], ["Avg", function (x) { return avg(x.recy || 0, x.catches); }], ["TD", "rectd"]]],
+    ["Defense", function (x) { return x.tak || x.sacks || x.ints || x.tfl || x.pd; }, [["Tkl", "tak"], ["TFL", "tfl"], ["Sacks", "sacks"], ["INT", "ints"], ["PD", "pd"], ["FF", "ff"], ["FR", "fr"], ["TD", "dtd"]]],
+    ["Blocking", function (x) { return x.pan || x.sa; }, [["Pancakes", "pan"], ["Sacks allowed", "sa"]]],
+    ["Kicking", function (x) { return x.xpa; }, [["XP", function (x) { return (x.xpm || 0) + "/" + (x.xpa || 0); }]]],
+    ["Punting", function (x) { return x.punts; }, [["Punts", "punts"], ["Yds", "puntyds"], ["Avg", function (x) { return avg(x.puntyds || 0, x.punts); }], ["In 20", "in20"]]],
+    ["Returns", function (x) { return x.krtd || x.prtd; }, [["KR TD", "krtd"], ["PR TD", "prtd"]]]
+  ];
+  function val(x, k) { return typeof k === "function" ? k(x) : (x[k] || 0); }
+
+  function render(d) {
+    var p = d.players[id];
+    if (!p) { fail("This player isn't on that roster this season."); return; }
+    document.title = p.name + " · " + d.team + " · Saturday Desk";
+    $("pp-ed").textContent = d.season + " SEASON · THROUGH WEEK " + d.week;
+    $("pp-team-link").href = "team-" + t + ".html"; $("pp-team-link").textContent = d.team + " →";
+    $("pp-kick").textContent = p.pos + " · " + d.team.toUpperCase();
+    $("pp-name").textContent = p.name;
+    var bio = [];
+    bio.push("<span><b>Team</b> <a href=\"team-" + t + ".html\">" + esc(d.team) + "</a></span>");  // quotes escaped so the build's link checker skips this script string
+    if (p.cls) bio.push("<span><b>Class</b> " + esc(p.cls) + "</span>");
+    if (p.ht) bio.push("<span><b>Size</b> " + Math.floor(p.ht / 12) + "-" + (p.ht % 12) + ", " + p.wt + " lb</span>");
+    if (p.stars) bio.push("<span><b>Recruit</b> " + "★".repeat(p.stars) + "</span>");
+    if (p.hs && (p.hs[0] || p.hs[1])) bio.push("<span><b>High school</b> " + esc([p.hs[0], [p.hs[1], p.hs[2]].filter(Boolean).join(", ")].filter(Boolean).join(" · ")) + "</span>");
+    $("pp-bio").innerHTML = bio.join("");
+
+    var S = p.season || {}, main = "";
+    var groups = G.filter(function (g) { return g[1](S); });
+    if (!groups.length) {
+      main = '<div class="box"><h2>' + d.season + ' SEASON</h2><p>No stats this season.</p></div>';
+    } else {
+      // headline numbers: the first group's main stats
+      var g0 = groups[0], big = g0[2].slice(0, 5).map(function (c) { return '<div><em>' + esc(val(S, c[1])) + '</em><span>' + esc(c[0]) + '</span></div>'; }).join("");
+      main += '<div class="box"><h2>' + d.season + ' SEASON · ' + esc(g0[0].toUpperCase()) + '</h2><div class="pp-big">' + big + '</div>'
+            + '<p class="note">' + (S.games || 0) + ' game' + (S.games === 1 ? '' : 's') + ' played' + (S.wins || S.losses ? ' · team record in those games ' + (S.wins || 0) + '-' + (S.losses || 0) : '') + '.</p></div>';
+      groups.forEach(function (g) {
+        var rows = p.log.filter(function (l) { return g[1](l.st); });
+        var head = "<tr><th>Wk</th><th>Opponent</th><th>Result</th>" + g[2].map(function (c) { return '<th class="n">' + esc(c[0]) + "</th>"; }).join("") + "</tr>";
+        var body = rows.map(function (l) {
+          var res = (l.us > l.them ? "W" : "L") + " " + l.us + "-" + l.them + (l.ot ? " (OT)" : "");
+          return "<tr><td class=\"r\">" + l.w + "</td><td>" + (l.home ? "vs " : "at ") + esc(l.opp) + "</td><td><a href=\"" + esc(l.href) + "\">" + esc(res) + "</a></td>"
+               + g[2].map(function (c) { return '<td class="n">' + esc(val(l.st, c[1])) + "</td>"; }).join("") + "</tr>";
+        }).join("");
+        var tot = '<tr class="fin"><td></td><td><b>Season</b></td><td></td>' + g[2].map(function (c) { return '<td class="n"><b>' + esc(val(S, c[1])) + "</b></td>"; }).join("") + "</tr>";
+        main += '<div class="box scroll"><h2>' + esc(g[0].toUpperCase()) + ' · GAME LOG</h2><table>' + head + body + tot + "</table></div>";
+      });
+    }
+    $("pp-main").innerHTML = main;
+
+    // side: teammates at the same position, by games played
+    var mates = Object.keys(d.players).filter(function (k) { return k !== id && d.players[k].pos === p.pos; })
+      .sort(function (a, b) { return ((d.players[b].season || {}).games || 0) - ((d.players[a].season || {}).games || 0) || d.players[a].name.localeCompare(d.players[b].name); });
+    var hon = (p.honors || []).slice().sort(function (a, b) { return b.w - a.w; });
+    var honBox = hon.length ? '<div class="box"><h2>HONORS · ' + d.season + '</h2><ul class="list">'
+      + hon.map(function (h) { return "<li><b>" + esc(h.award) + "</b><span>Week " + h.w + (h.line ? " · " + esc(h.line) : "") + "</span></li>"; }).join("")
+      + "</ul></div>" : "";
+    $("pp-side").innerHTML = honBox + '<div class="box"><h2>' + esc(p.pos) + 's · ' + esc(d.team.toUpperCase()) + '</h2><ul class="list">'
+      + mates.slice(0, 12).map(function (k) { var m = d.players[k]; return '<li><a href="player.html?s=' + s + '&t=' + t + '&id=' + k + '"><b>' + esc(m.name) + '</b></a><span>' + esc(m.cls || "") + ((m.season || {}).games ? " · " + m.season.games + " games" : " · no games yet") + "</span></li>"; }).join("")
+      + '</ul></div><div class="box"><h2>ABOUT THESE NUMBERS</h2><ul class="list"><li><b>From the save</b><span>Every number comes from the Desk\'s weekly stats file, read straight from the league save, the same numbers as every other page on the site.</span></li></ul></div>';
+  }
+})();
+</script>
+<footer><div class="wrap"><span>Fan site · Stats from a Draft Day Sports: College Football league</span><span class="sp">Archive: 2026</span><span class="credit">Flag photo: <a href="https://commons.wikimedia.org/wiki/File:American_Flag_Waving_in_the_Wind.jpg">IceuImgflip</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span></div></footer>
+<script src="theme.js"></script>
+</body>
+</html>

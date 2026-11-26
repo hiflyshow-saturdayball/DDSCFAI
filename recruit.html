@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recruit · Saturday Desk</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .pp-bio{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:.95em}
+  .pp-bio b{font-weight:600}
+  td.n,th.n{text-align:right}
+  .bar{display:inline-block;height:8px;border-radius:2px;background:currentColor;opacity:.55;vertical-align:middle;margin-right:6px}
+  .tag{font-size:.75em;border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-left:4px;opacity:.8;white-space:nowrap}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="index.html">SATURDAY<span>DESK</span></a>
+  <nav class="main">
+    <a href="index.html">Home</a><a href="top25.html">Top 25</a><a href="conference.html">Conferences</a><a href="teams.html">Teams</a><a href="heisman.html">Heisman</a><a href="leaders.html">Stat Leaders</a><a href="injuries.html">Injuries</a>
+    <a href="tops.html">Weekly Tops</a><a href="frosh.html">Frosh Heisman</a><a href="trail.html">The Trail</a><a href="article.html">Dual Threat</a><a href="ak.html">AK Corner</a><a href="film-room.html">Film Room</a><a href="weeks.html">Archive</a>
+  </nav>
+</div></header>
+<div class="edition"><div class="wrap"><b id="rc-ed">RECRUIT</b><a href="trail.html">The Trail →</a></div></div>
+<div class="wrap page-title"><span class="kick" id="rc-kick">RECRUIT</span><h1 id="rc-name">Loading…</h1><div class="pp-bio" id="rc-bio"></div></div>
+<div class="wrap grid">
+  <main id="rc-main"></main>
+  <aside id="rc-side"></aside>
+</div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), s = q.get("s"), id = q.get("id");
+  var $ = function (i) { return document.getElementById(i); };
+  function esc(x) { return String(x).replace(/[&<>"]/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]; }); }
+  function fail(msg) { $("rc-name").textContent = "Recruit not found"; $("rc-main").innerHTML = "<div class=\"box\"><p>" + esc(msg) + " <a href=\"trail.html\">Back to The Trail</a></p></div>"; }
+  if (!s || !id || !/^\d{4}$/.test(s) || !/^\d+$/.test(id)) { fail("This link is missing the recruit."); return; }
+  window.RC_LOAD = function (d) { render(d); };
+  var tag = document.createElement("script");
+  tag.src = "recruits/" + s + "/" + (parseInt(id, 10) % 64) + ".js";
+  tag.onerror = function () { fail("No recruiting data for this season."); };
+  document.body.appendChild(tag);
+  function money(n) { return n >= 1e6 ? "$" + (n / 1e6).toFixed(2) + "M" : "$" + Math.round(n / 1e3) + "K"; }
+
+  function render(d) {
+    var r = d.recruits[id];
+    if (!r) { fail("This prospect isn't in that recruiting class."); return; }
+    var b = r.bio, T = d.teams, wk = d.weeks.filter(function (w) { return r.weeks[w]; });
+    var last = r.weeks[wk[wk.length - 1]] || {o: [], c: null};
+    function team(tid) { return T[tid] ? "<a href=\"team-" + d.slugs[tid] + ".html\">" + esc(T[tid]) + "</a>" : "?"; }
+    document.title = b.name + " · Recruit · Saturday Desk";
+    $("rc-ed").textContent = "CLASS OF " + (parseInt(s, 10) + 1) + " · THROUGH WEEK " + d.week;
+    $("rc-kick").textContent = b.pos + " · " + "★".repeat(b.stars || 0) + (b.rank ? " · NO. " + b.rank + " NATIONALLY" : "");
+    $("rc-name").textContent = b.name;
+    var bio = [];
+    if (b.rank) bio.push("<span><b>Rank</b> No. " + b.rank + " overall, No. " + b.rank_pos + " " + esc(b.pos) + (b.rank_state ? ", No. " + b.rank_state + " in " + esc(b.hs[2]) : "") + "</span>");
+    if (b.ht) bio.push("<span><b>Size</b> " + Math.floor(b.ht / 12) + "-" + (b.ht % 12) + ", " + b.wt + " lb</span>");
+    if (b.hs[0] || b.hs[1]) bio.push("<span><b>High school</b> " + esc([b.hs[0], [b.hs[1], b.hs[2]].filter(Boolean).join(", ")].filter(Boolean).join(" · ")) + "</span>");
+    $("rc-bio").innerHTML = bio.join("");
+
+    var status = last.c ? "<b>Committed to " + team(last.c) + "</b>" : (last.o.length && last.o[0][1] > 0 ? "Uncommitted · leader: " + team(last.o[0][0]) + " (" + last.o[0][1] + ")" : "Uncommitted · nobody calling yet");
+    var main = "<div class=\"box\"><h2>WHERE HE STANDS · WEEK " + wk[wk.length - 1] + "</h2><p>" + status + "</p></div>";
+    // interest by school, week by week (schools ordered by the latest week)
+    var schools = last.o.map(function (o) { return o[0]; });
+    wk.forEach(function (w) { r.weeks[w].o.forEach(function (o) { if (schools.indexOf(o[0]) < 0) schools.push(o[0]); }); });
+    if (schools.length) {
+      var head = "<tr><th>School</th>" + wk.map(function (w) { return "<th class=\"n\">Wk " + w + "</th>"; }).join("") + "<th>Latest</th></tr>";
+      var rows = schools.map(function (tid) {
+        var lo = last.o.filter(function (o) { return o[0] === tid; })[0];
+        var tags = [];
+        if (last.c === tid) tags.push("committed");
+        if (lo && lo[3]) tags.push("scholarship");
+        if (lo && lo[4]) tags.push("NIL " + money(lo[4]));
+        if (lo && lo[5]) tags.push("promise: " + lo[5].replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase());
+        if (lo && !lo[2]) tags.push("not active");
+        if (b.dream.indexOf(tid) >= 0) tags.push("dream school");
+        return "<tr><td>" + team(tid) + "</td>" + wk.map(function (w) {
+          var o = r.weeks[w].o.filter(function (x) { return x[0] === tid; })[0];
+          return "<td class=\"n\">" + (o ? o[1] : "–") + "</td>";
+        }).join("") + "<td>" + (lo ? "<span class=\"bar\" style=\"width:" + Math.round(lo[1] * 0.8) + "px\"></span>" : "") + tags.map(function (t) { return "<span class=\"tag\">" + esc(t) + "</span>"; }).join("") + "</td></tr>";
+      }).join("");
+      main += "<div class=\"box scroll\"><h2>INTEREST BY SCHOOL</h2><table>" + head + rows + "</table><p class=\"note\">Interest is the prospect's own 1-98 scale for each school recruiting him, as the save records it each week.</p></div>";
+    }
+    $("rc-main").innerHTML = main;
+
+    var ev = r.events.slice().sort(function (a, c) { return c[0] - a[0] || c[1] - a[1]; });
+    var side = "<div class=\"box\"><h2>TIMELINE</h2><ul class=\"list\">" + (ev.length ? ev.map(function (e) {
+      var kind = {official_visit: "Official visit", commit: "Commitment", decommit: "Decommitment"}[e[2]] || e[2].replace(/_/g, " ");
+      return "<li><b>" + esc(kind) + "</b><span>Week " + e[1] + " · " + esc(e[3]) + "</span></li>"; }).join("") : "<li><b>Nothing yet</b><span>No visits or decisions recorded.</span></li>") + "</ul></div>";
+    if (b.dream.length) side += "<div class=\"box\"><h2>DREAM SCHOOLS</h2><ul class=\"list\">" + b.dream.map(function (t) { return "<li><b>" + team(t) + "</b></li>"; }).join("") + "</ul></div>";
+    $("rc-side").innerHTML = side;
+  }
+})();
+</script>
+<footer><div class="wrap"><span>Fan site · Stats from a Draft Day Sports: College Football league</span><span class="sp">Archive: 2026</span><span class="credit">Flag photo: <a href="https://commons.wikimedia.org/wiki/File:American_Flag_Waving_in_the_Wind.jpg">IceuImgflip</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></span></div></footer>
+<script src="theme.js"></script>
+</body>
+</html>
