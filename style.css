@@ -113,6 +113,9 @@ tr.fin td{background:color-mix(in srgb,var(--red) 8%,var(--card))}tr.fin td.r{co
 .pv-lead th{width:90px;text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;vertical-align:top}
 .pv-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;padding:20px 16px;align-items:start}
 .pv-index .box{margin-bottom:0}
+.pv-stacks{grid-template-columns:1fr 1fr}
+.pv-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (max-width:760px){.pv-stacks{display:flex;flex-direction:column}.pv-col{display:contents}}
 .lead-sec{font-size:14px;letter-spacing:.12em;color:var(--muted);padding:18px 16px 8px;margin:0}
 .lead-note{font-size:12px;color:var(--muted);font-style:italic;padding:12px 16px 24px;margin:0}
 td.trend{white-space:nowrap;color:var(--muted);font-size:11px}
@@ -210,6 +213,25 @@ a.tl:hover{color:var(--accent-text);text-decoration-color:currentColor}
 .tm-nums{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 .tm-nums div{border-right:1px solid var(--line)!important}
 .tm-rec .note{padding-top:10px}
+
+/* week-by-week navigation (archive_nav.py) */
+.weeknav{background:var(--card);border-bottom:1px solid var(--line);font-size:13px}
+.weeknav .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 16px;flex-wrap:wrap}
+.weeknav a{color:var(--accent-text);font-weight:600}
+.weeknav .mid{color:var(--muted);text-align:center;flex:1}
+.weeknav .mid a b{color:var(--text)}
+.pv-final{background:var(--text);color:#fff}
+.pv-final .wrap{display:flex;align-items:center;gap:14px;padding:12px 16px;flex-wrap:wrap;font-size:15px}
+.pv-final b{background:var(--red);color:var(--on-accent);font-size:11px;letter-spacing:.12em;padding:3px 8px;border-radius:3px}
+.pv-final span{font-weight:800}
+.pv-final a{margin-left:auto;font-size:13px;font-weight:700;color:#fff;text-decoration:underline}
+.wk-table td{vertical-align:top}
+.wk-table td.r{width:auto;white-space:nowrap}
+.wk-table td.wk-c b{display:block}
+.wk-table td.wk-c span{color:var(--muted);font-size:12px}
+.wk-table td.wk-f a{display:block;padding:2px 0 5px}
+.wk-table tr.wk-now td{background:color-mix(in srgb,var(--red) 7%,var(--card))}
+.wk-table a:hover{color:var(--accent-text)}
 
 footer{background:var(--ink);color:var(--on-ink-soft);font-size:12px;padding:22px 0;margin-top:10px}
 footer .wrap{display:flex;gap:18px;flex-wrap:wrap}
